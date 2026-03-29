@@ -20,7 +20,7 @@ export default function MemberInviteForm({ householdId }: MemberInviteFormProps)
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex items-end gap-3">
+    <form onSubmit={handleSubmit} noValidate className="flex items-end gap-3">
       <div className="flex-1">
         <Input
           label="Invite by email"

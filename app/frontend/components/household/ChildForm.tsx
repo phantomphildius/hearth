@@ -36,7 +36,7 @@ export default function ChildForm({ householdId, child, onCancel }: ChildFormPro
   const today = new Date().toISOString().split('T')[0]
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} noValidate className="space-y-4">
       <Input
         label="First Name"
         name="child[first_name]"

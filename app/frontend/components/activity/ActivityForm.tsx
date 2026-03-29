@@ -87,7 +87,7 @@ export default function ActivityForm({ activity, householdId, children, errors: 
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} noValidate className="space-y-6">
       <Input
         label="Activity Name"
         name="activity[name]"

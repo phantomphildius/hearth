@@ -16,10 +16,12 @@ export default function Input({ label, name, type = 'text', value, onChange, err
 
   return (
     <div>
-      <label htmlFor={name} className="block text-sm font-medium text-stone-700">
-        {label}
-        {required && <span className="text-red-600 ml-0.5" aria-hidden="true">*</span>}
-      </label>
+      <div className="flex items-baseline gap-0.5">
+        <label htmlFor={name} className="block text-sm font-medium text-stone-700">
+          {label}
+        </label>
+        {required && <span className="text-red-600 text-sm" aria-hidden="true">*</span>}
+      </div>
       <input
         id={name}
         name={name}

@@ -47,6 +47,7 @@ export default function Modal({ open, onClose, title, children, size = 'md' }: M
   return (
     <dialog
       ref={dialogRef}
+      open
       aria-labelledby={titleId}
       aria-modal="true"
       onClick={(e) => { if (e.target === dialogRef.current) onClose() }}
