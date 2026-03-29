@@ -1,5 +1,45 @@
 # Hearth — Claude Code Guidelines
 
+## Running the App
+
+### Executables
+
+Always use the project-local binstubs — do not call system-level `ruby`, `rails`, `rspec`, etc. directly.
+
+| Task | Command |
+|---|---|
+| Start Rails server | `bin/rails s` |
+| Rails console | `bin/rails c` |
+| Run a Rails generator | `bin/rails generate ...` |
+| Run all Ruby tests | `bundle exec rspec` |
+| Run a specific spec file | `bundle exec rspec spec/path/to/file_spec.rb` |
+| Run Ruby linter | `bundle exec rubocop` |
+| Install Ruby gems | `bundle install` |
+| Install Node packages | `npm install --legacy-peer-deps` |
+| Start Vite dev server | `bin/vite dev` |
+| Run frontend tests | `npm run test:run` |
+| Run frontend linter | `npm run lint` |
+| Run TypeScript check | `npm run typecheck` |
+| npx commands | `npx <tool>` — no local binstub needed |
+
+### Dev server (two processes required)
+
+The app requires both servers running simultaneously:
+
+```bash
+bin/rails s      # Rails on port 3000
+bin/vite dev     # Vite on port 3036
+```
+
+Or with foreman:
+
+```bash
+gem install foreman
+foreman start -f Procfile.dev
+```
+
+---
+
 ## Security Principles
 
 These rules apply to **all** code written in this project. They are non-negotiable and must be followed without exception.
