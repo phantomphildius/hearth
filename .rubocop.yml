@@ -1,0 +1,44 @@
+inherit_gem:
+  rubocop-shopify: rubocop.yml
+
+plugins:
+  - rubocop-rails
+  - rubocop-rspec
+
+AllCops:
+  TargetRubyVersion: 3.4
+  NewCops: enable
+  Exclude:
+    - 'bin/**/*'
+    - 'db/schema.rb'
+    - 'vendor/**/*'
+    - 'node_modules/**/*'
+    - 'tmp/**/*'
+    - 'db/migrate/**/*'
+
+# Shopify style uses frozen_string_literal but we follow Rails 8 convention of omitting it
+Style/FrozenStringLiteralComment:
+  Enabled: false
+
+# Allow multiple expectations in request specs and integration-style tests
+RSpec/MultipleExpectations:
+  Max: 5
+
+RSpec/ExampleLength:
+  Max: 15
+
+# Shopify disallows documentation but we want it for models
+Style/Documentation:
+  Enabled: false
+
+# Defer i18n to a future milestone
+Rails/I18nLocaleTexts:
+  Enabled: false
+
+# Allow subject references in specs
+RSpec/NamedSubject:
+  Enabled: false
+
+# Allow self.method_name style for Sorbet compatibility
+Style/ClassMethodsDefinitions:
+  Enabled: false
