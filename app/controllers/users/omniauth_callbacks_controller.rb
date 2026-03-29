@@ -1,0 +1,36 @@
+# typed: strict
+
+module Users
+  class OmniauthCallbacksController < Devise::OmniauthCallbacksController
+    extend T::Sig
+
+    skip_before_action :authenticate_user!
+
+    def google_oauth2
+      user = User.from_omniauth(request.env["omniauth.auth"])
+
+      if user.persisted?
+        ensure_default_household(user)
+        sign_in_and_redirect(user, event: :authentication)
+        set_flash_message(:notice, :success, kind: "Google") if is_navigational_format?
+      else
+        session["devise.google_data"] = request.env["omniauth.auth"].except(:extra)
+        redirect_to(new_user_session_path, alert: user.errors.full_messages.join("\n"))
+      end
+    end
+
+    def failure
+      redirect_to(new_user_session_path, alert: "Authentication failed. Please try again.")
+    end
+
+    private
+
+    sig { params(user: User).void }
+    def ensure_default_household(user)
+      return if user.households.any?
+
+      household = Household.create!(name: "#{user.name}'s Household")
+      household.household_members.create!(user: user)
+    end
+  end
+end
