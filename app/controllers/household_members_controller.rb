@@ -7,6 +7,7 @@ class HouseholdMembersController < ApplicationController
 
   sig { void }
   def create
+    authorize @household, :manage_members?
     result = AddHouseholdMember.call(household: @household, email: params[:email])
 
     if result.success?
@@ -18,6 +19,7 @@ class HouseholdMembersController < ApplicationController
 
   sig { void }
   def destroy
+    authorize @household, :manage_members?
     result = RemoveHouseholdMember.call(household: @household, user_id: params[:id].to_i)
 
     if result.success?

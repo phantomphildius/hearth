@@ -8,6 +8,7 @@ class ChildrenController < ApplicationController
   sig { void }
   def create
     child = @household.children.build(child_params)
+    authorize child
 
     if child.save
       redirect_to(household_path(@household), notice: "#{child.first_name} added.")
@@ -19,6 +20,7 @@ class ChildrenController < ApplicationController
   sig { void }
   def update
     child = @household.children.find(params[:id])
+    authorize child
 
     if child.update(child_params)
       redirect_to(household_path(@household), notice: "Updated.")
@@ -30,6 +32,7 @@ class ChildrenController < ApplicationController
   sig { void }
   def destroy
     child = @household.children.find(params[:id])
+    authorize child
     child.destroy
     redirect_to(household_path(@household), notice: "#{child.first_name} removed.")
   end

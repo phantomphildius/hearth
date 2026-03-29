@@ -5,6 +5,7 @@ module Users
     extend T::Sig
 
     skip_before_action :authenticate_user!
+    skip_after_action :verify_authorized
 
     def google_oauth2
       user = User.from_omniauth(request.env["omniauth.auth"])

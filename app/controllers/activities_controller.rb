@@ -9,6 +9,7 @@ class ActivitiesController < ApplicationController
 
   sig { void }
   def index
+    authorize Activity
     activities = @household.activities.includes(:children).order(:day_of_week, :start_time)
 
     render(inertia: "Activities/Index", props: {
@@ -20,6 +21,7 @@ class ActivitiesController < ApplicationController
 
   sig { void }
   def show
+    authorize @activity
     render(inertia: "Activities/Show", props: {
       household: household_props(@household),
       activity: activity_props(@activity),
@@ -29,6 +31,7 @@ class ActivitiesController < ApplicationController
 
   sig { void }
   def new
+    authorize Activity
     render(inertia: "Activities/New", props: {
       household: household_props(@household),
       children: @household.children.map { |c| child_props(c) },
@@ -39,6 +42,7 @@ class ActivitiesController < ApplicationController
 
   sig { void }
   def edit
+    authorize @activity
     render(inertia: "Activities/Edit", props: {
       household: household_props(@household),
       children: @household.children.map { |c| child_props(c) },
@@ -49,6 +53,7 @@ class ActivitiesController < ApplicationController
 
   def create
     @activity = @household.activities.build(activity_params)
+    authorize @activity
 
     if @activity.save
       SyncActivityChildren.call(activity: @activity, child_ids: params[:activity][:child_ids], household: @household)
@@ -65,6 +70,7 @@ class ActivitiesController < ApplicationController
 
   sig { void }
   def update
+    authorize @activity
     if @activity.update(activity_params)
       SyncActivityChildren.call(activity: @activity, child_ids: params[:activity][:child_ids], household: @household)
       redirect_to(household_activity_path(@household, @activity), notice: "Activity updated.")
@@ -80,6 +86,7 @@ class ActivitiesController < ApplicationController
 
   sig { void }
   def destroy
+    authorize @activity
     @activity.destroy
     redirect_to(household_activities_path(@household), notice: "Activity deleted.")
   end
