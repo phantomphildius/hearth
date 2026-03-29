@@ -24,7 +24,8 @@ Rails.application.configure do
     end
   end
 
-  # Generate session nonces for permitted inline scripts and inline styles.
+  # Nonces for inline scripts only — style-src is excluded because Vite injects
+  # styles dynamically and a nonce on style-src overrides unsafe-inline in CSP level 2+.
   config.content_security_policy_nonce_generator = ->(request) { request.session.id.to_s }
-  config.content_security_policy_nonce_directives = %w[script-src style-src]
+  config.content_security_policy_nonce_directives = %w[script-src]
 end
