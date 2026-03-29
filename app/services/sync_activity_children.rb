@@ -19,7 +19,6 @@ class SyncActivityChildren
   def call
     return if @child_ids.blank?
 
-    valid_ids = @household.children.where(id: @child_ids).pluck(:id)
-    @activity.children = Child.where(id: valid_ids)
+    @activity.children = @household.children.where(id: @child_ids)
   end
 end
