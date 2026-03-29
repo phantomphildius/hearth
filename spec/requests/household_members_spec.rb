@@ -22,7 +22,7 @@ RSpec.describe("HouseholdMembers", type: :request) do
 
     it "handles non-existent user email" do
       post household_household_members_path(household), params: { email: "nobody@example.com" }
-      expect(response).to(have_http_status(:ok)) # Inertia re-renders with error
+      expect(response).to(redirect_to(household_path(household)))
     end
 
     it "prevents adding the same user twice" do

@@ -28,6 +28,25 @@ class Activity < ApplicationRecord
 
   before_validation :compute_duration_minutes
 
+  sig { returns(T::Hash[Symbol, T.untyped]) }
+  def self.defaults
+    {
+      name: "",
+      location_name: "",
+      address: "",
+      latitude: nil,
+      longitude: nil,
+      day_of_week: nil,
+      start_time: "",
+      end_time: "",
+      duration_minutes: nil,
+      recurrence: "weekly",
+      starts_on: "",
+      notes: "",
+      child_ids: [],
+    }
+  end
+
   sig { returns(T.nilable(String)) }
   def day_of_week_name
     return if day_of_week.nil?

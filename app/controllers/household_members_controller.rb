@@ -7,34 +7,23 @@ class HouseholdMembersController < ApplicationController
 
   sig { void }
   def create
-    user = User.find_by(email: params[:email])
+    result = AddHouseholdMember.call(household: @household, email: params[:email])
 
-    if user.nil?
-      return render(inertia: "Households/Show", props: { error: "No user found with that email." })
-    end
-
-    member = @household.household_members.build(user: user)
-
-    if member.save
-      redirect_to(household_path(@household), notice: "#{user.name} added to household.")
+    if result.success?
+      redirect_to(household_path(@household), notice: "#{result.record.user.name} added to household.")
     else
-      redirect_to(household_path(@household), alert: member.errors.full_messages.join(", "))
+      redirect_to(household_path(@household), alert: result.errors.join(", "))
     end
   end
 
   sig { void }
   def destroy
-    if @household.household_members.count <= 1
-      redirect_to(household_path(@household), alert: "Cannot remove the last member of a household.")
-      return
-    end
+    result = RemoveHouseholdMember.call(household: @household, user_id: params[:id].to_i)
 
-    member = @household.household_members.find_by(user_id: params[:id])
-
-    if member&.destroy
+    if result.success?
       redirect_to(household_path(@household), notice: "Member removed.")
     else
-      redirect_to(household_path(@household), alert: "Could not remove member.")
+      redirect_to(household_path(@household), alert: result.errors.join(", "))
     end
   end
 

@@ -2,6 +2,7 @@
 
 class HouseholdsController < ApplicationController
   extend T::Sig
+  include HouseholdProps
 
   before_action :set_household, only: [:show, :update, :settings]
 
@@ -23,14 +24,13 @@ class HouseholdsController < ApplicationController
 
   sig { void }
   def create
-    @household = Household.new(household_params)
+    result = CreateHousehold.call(user: current_user, name: household_params[:name])
 
-    if @household.save
-      @household.household_members.create!(user: current_user)
-      redirect_to(household_path(@household), notice: "Household created.")
+    if result.success?
+      redirect_to(household_path(result.record), notice: "Household created.")
     else
       render(inertia: "Households/New", props: {
-        errors: @household.errors.as_json,
+        errors: result.errors,
       })
     end
   end
@@ -75,20 +75,5 @@ class HouseholdsController < ApplicationController
   sig { returns(ActionController::Parameters) }
   def household_params
     params.expect(household: [:name])
-  end
-
-  sig { params(household: Household).returns(T::Hash[Symbol, T.untyped]) }
-  def household_props(household)
-    { id: household.id, name: household.name }
-  end
-
-  sig { params(user: User).returns(T::Hash[Symbol, T.untyped]) }
-  def user_props(user)
-    { id: user.id, name: user.name, email: user.email, avatar_url: user.avatar_url }
-  end
-
-  sig { params(child: Child).returns(T::Hash[Symbol, T.untyped]) }
-  def child_props(child)
-    { id: child.id, first_name: child.first_name, date_of_birth: child.date_of_birth, age: child.age }
   end
 end
