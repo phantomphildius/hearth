@@ -17,7 +17,11 @@ class ProvisionDefaultHousehold
   def call
     return if @user.households.any?
 
-    household = Household.create!(name: "#{@user.name}'s Household")
-    household.household_members.create!(user: @user)
+    Household.transaction do
+      household = Household.create!(name: "#{@user.name}'s Household")
+      household.household_members.create!(user: @user)
+    end
+  rescue ActiveRecord::RecordInvalid
+    # Non-fatal: user can create a household after sign-in
   end
 end

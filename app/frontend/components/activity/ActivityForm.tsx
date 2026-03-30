@@ -57,6 +57,26 @@ export default function ActivityForm({ activity, householdId, children, errors: 
     e.preventDefault()
     setClientError(null)
 
+    if (!data.name.trim()) {
+      setClientError('Activity name is required')
+      return
+    }
+    if (!data.start_time) {
+      setClientError('Start time is required')
+      return
+    }
+    if (!data.end_time) {
+      setClientError('End time is required')
+      return
+    }
+    if (data.recurrence !== 'one_time' && data.day_of_week === null) {
+      setClientError('Day of week is required for recurring activities')
+      return
+    }
+    if (data.recurrence === 'one_time' && !data.starts_on) {
+      setClientError('Date is required for one-time activities')
+      return
+    }
     if (data.start_time && data.end_time && data.end_time <= data.start_time) {
       setClientError('End time must be after start time')
       return

@@ -1,5 +1,5 @@
 import { useForm } from '@inertiajs/react'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import Input from '../form/Input'
 import DatePicker from '../form/DatePicker'
 import Button from '../form/Button'
@@ -18,12 +18,19 @@ export default function ChildForm({ householdId, child, onCancel }: ChildFormPro
     date_of_birth: child?.date_of_birth || '',
   })
 
+  const [clientError, setClientError] = useState<string | null>(null)
+
   useEffect(() => {
     if (wasSuccessful) onCancel()
   }, [wasSuccessful, onCancel])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    setClientError(null)
+    if (!data.first_name.trim()) {
+      setClientError('First name is required')
+      return
+    }
     const options = { preserveScroll: true }
 
     if (isEdit) {
@@ -55,6 +62,9 @@ export default function ChildForm({ householdId, child, onCancel }: ChildFormPro
         max={today}
         required
       />
+      {clientError && (
+        <p role="alert" className="text-sm text-red-600">{clientError}</p>
+      )}
       <div className="flex items-center gap-3">
         <Button type="submit" loading={processing}>
           {isEdit ? 'Update' : 'Add Child'}

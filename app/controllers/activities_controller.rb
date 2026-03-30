@@ -4,6 +4,18 @@ class ActivitiesController < ApplicationController
   extend T::Sig
   include HouseholdProps
 
+  ActivityChildPropShape = T.type_alias { { id: Integer, first_name: String, age: Integer } }
+  ActivityPropShape = T.type_alias {
+    {
+      id: Integer, name: String, location_name: T.nilable(String), address: T.nilable(String),
+      latitude: T.nilable(Float), longitude: T.nilable(Float), day_of_week: T.nilable(Integer),
+      day_of_week_name: T.nilable(String), start_time: T.nilable(String), end_time: T.nilable(String),
+      duration_minutes: T.nilable(Integer), recurrence: String, starts_on: T.nilable(String),
+      notes: T.nilable(String), children: T::Array[ActivityChildPropShape],
+      created_at: T.nilable(ActiveSupport::TimeWithZone), updated_at: T.nilable(ActiveSupport::TimeWithZone)
+    }
+  }
+
   before_action :set_household
   before_action :set_activity, only: [:show, :edit, :update, :destroy]
 
@@ -56,7 +68,8 @@ class ActivitiesController < ApplicationController
     authorize @activity
 
     if @activity.save
-      SyncActivityChildren.call(activity: @activity, child_ids: params[:activity][:child_ids], household: @household)
+      child_ids = Array(params.dig(:activity, :child_ids)).map(&:to_i)
+      SyncActivityChildren.call(activity: @activity, child_ids: child_ids, household: @household)
       redirect_to(household_activity_path(@household, @activity), notice: "Activity created.")
     else
       render(inertia: "Activities/New", props: {
@@ -72,7 +85,8 @@ class ActivitiesController < ApplicationController
   def update
     authorize @activity
     if @activity.update(activity_params)
-      SyncActivityChildren.call(activity: @activity, child_ids: params[:activity][:child_ids], household: @household)
+      child_ids = Array(params.dig(:activity, :child_ids)).map(&:to_i)
+      SyncActivityChildren.call(activity: @activity, child_ids: child_ids, household: @household)
       redirect_to(household_activity_path(@household, @activity), notice: "Activity updated.")
     else
       render(inertia: "Activities/Edit", props: {
@@ -123,7 +137,7 @@ class ActivitiesController < ApplicationController
     )
   end
 
-  sig { params(activity: Activity).returns(T::Hash[Symbol, T.untyped]) }
+  sig { params(activity: Activity).returns(ActivityPropShape) }
   def activity_props(activity)
     {
       id: activity.id,

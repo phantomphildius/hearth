@@ -125,7 +125,7 @@ describe('ActivityForm', () => {
     const user = userEvent.setup()
 
     // Provide times so the validation branch fires: end <= start
-    mockUseForm(makeFormData({ start_time: '10:00', end_time: '09:00' }))
+    mockUseForm(makeFormData({ name: 'Soccer', day_of_week: 1, start_time: '10:00', end_time: '09:00' }))
     render(<ActivityForm {...defaultProps} />)
 
     await user.click(screen.getByRole('button', { name: /create activity/i }))

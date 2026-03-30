@@ -9,6 +9,7 @@ class ApplicationController < ActionController::Base
   after_action :verify_authorized
 
   rescue_from Pundit::NotAuthorizedError, with: :render_forbidden
+  rescue_from ActiveRecord::RecordNotFound, with: :render_not_found
 
   def authenticate_user!
     redirect_to(new_user_session_path, alert: "Please sign in to continue.") unless user_signed_in?
@@ -18,6 +19,10 @@ class ApplicationController < ActionController::Base
 
   def render_forbidden
     render(plain: "Not authorized", status: :forbidden)
+  end
+
+  def render_not_found
+    redirect_to root_path, alert: "Record not found."
   end
 
   inertia_share do

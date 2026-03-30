@@ -24,6 +24,21 @@ vi.mock('@inertiajs/react', () => ({
     <a href={href}>{children}</a>,
 }))
 
+import { useForm } from '@inertiajs/react'
+
+function mockUseForm(data: Record<string, unknown>) {
+  ;(useForm as ReturnType<typeof vi.fn>).mockReturnValueOnce({
+    data,
+    setData: mockSetData,
+    post: mockPost,
+    patch: mockPatch,
+    processing: false,
+    errors: {},
+    wasSuccessful: false,
+    reset: vi.fn(),
+  })
+}
+
 const existingChild: Child = {
   id: 10,
   first_name: 'Emma',
@@ -60,6 +75,7 @@ describe('ChildForm', () => {
 
     it('submitting calls post with the correct URL', async () => {
       const user = userEvent.setup()
+      mockUseForm({ first_name: 'Alice', date_of_birth: '2018-01-01' })
       render(<ChildForm householdId={1} onCancel={vi.fn()} />)
 
       await user.click(screen.getByRole('button', { name: /add child/i }))

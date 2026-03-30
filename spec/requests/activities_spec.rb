@@ -124,7 +124,7 @@ RSpec.describe("Activities", type: :request) do
       other_activity = create(:activity, household: other_household)
 
       get household_activity_path(other_household, other_activity)
-      expect(response).to(have_http_status(:not_found))
+      expect(response).to(redirect_to(root_path))
     end
   end
 end

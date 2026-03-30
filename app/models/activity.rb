@@ -3,6 +3,15 @@
 class Activity < ApplicationRecord
   extend T::Sig
 
+  ActivityDefaultsShape = T.type_alias {
+    {
+      name: String, location_name: String, address: String, latitude: T.nilable(Float),
+      longitude: T.nilable(Float), day_of_week: T.nilable(Integer), start_time: String,
+      end_time: String, duration_minutes: T.nilable(Integer), recurrence: String,
+      starts_on: String, notes: String, child_ids: T::Array[Integer]
+    }
+  }
+
   belongs_to :household
   has_many :activity_children, dependent: :destroy
   has_many :children, through: :activity_children
@@ -28,7 +37,7 @@ class Activity < ApplicationRecord
 
   before_validation :compute_duration_minutes
 
-  sig { returns(T::Hash[Symbol, T.untyped]) }
+  sig { returns(ActivityDefaultsShape) }
   def self.defaults
     {
       name: "",

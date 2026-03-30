@@ -28,11 +28,11 @@ RSpec.describe("Households", type: :request) do
       expect(response).to(redirect_to(new_household_path))
     end
 
-    it "returns 404 for households the user doesn't belong to" do
+    it "redirects to root for households the user doesn't belong to" do
       other_household = create(:household)
 
       get household_path(other_household)
-      expect(response).to(have_http_status(:not_found))
+      expect(response).to(redirect_to(root_path))
     end
   end
 

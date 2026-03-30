@@ -6,7 +6,7 @@ class ServiceResult
   sig { returns(T::Boolean) }
   attr_reader :success
 
-  sig { returns(T.untyped) }
+  sig { returns(T.nilable(ApplicationRecord)) }
   attr_reader :record
 
   sig { returns(T::Array[String]) }
@@ -14,14 +14,14 @@ class ServiceResult
 
   alias_method :success?, :success
 
-  sig { params(success: T::Boolean, record: T.untyped, errors: T::Array[String]).void }
+  sig { params(success: T::Boolean, record: T.nilable(ApplicationRecord), errors: T::Array[String]).void }
   def initialize(success:, record: nil, errors: [])
     @success = success
     @record = record
     @errors = errors
   end
 
-  sig { params(record: T.untyped).returns(ServiceResult) }
+  sig { params(record: T.nilable(ApplicationRecord)).returns(ServiceResult) }
   def self.ok(record: nil)
     new(success: true, record: record)
   end

@@ -8,6 +8,9 @@ class HouseholdMembersController < ApplicationController
   sig { void }
   def create
     authorize @household, :manage_members?
+    if params[:email].blank?
+      return redirect_to(household_path(@household), alert: "Email is required.")
+    end
     result = AddHouseholdMember.call(household: @household, email: params[:email])
 
     if result.success?
