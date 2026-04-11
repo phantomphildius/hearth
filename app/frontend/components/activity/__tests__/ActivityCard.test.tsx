@@ -1,69 +1,77 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import ActivityCard from '../ActivityCard'
-import type { Activity } from '../../../types'
+import type { SessionCalendarEntry } from '../../../types'
 
-const baseActivity: Activity = {
-  id: 1,
+const baseEntry: SessionCalendarEntry = {
+  kind: 'session',
+  activity_id: 1,
+  session_id: 1,
   name: 'Soccer Practice',
-  location_name: 'Lincoln Park Field #3',
-  address: '123 Main St, Springfield, IL',
-  latitude: 39.7817,
-  longitude: -89.6501,
-  day_of_week: 1,
-  day_of_week_name: 'Monday',
+  scheduled_date: '2024-01-01',
   start_time: '09:00',
   end_time: '10:30',
-  duration_minutes: 90,
-  recurrence: 'weekly',
-  starts_on: null,
   notes: null,
   children: [],
-  created_at: '2024-01-01T00:00:00Z',
-  updated_at: '2024-01-01T00:00:00Z',
 }
 
 describe('ActivityCard', () => {
   it('renders the activity name', () => {
-    render(<ActivityCard activity={baseActivity} onClick={vi.fn()} />)
+    render(<ActivityCard entry={baseEntry} onClick={vi.fn()} />)
     expect(screen.getByText('Soccer Practice')).toBeInTheDocument()
   })
 
   it('renders the start and end times', () => {
-    render(<ActivityCard activity={baseActivity} onClick={vi.fn()} />)
-    // The component renders "09:00 – 10:30" with an ndash entity
+    render(<ActivityCard entry={baseEntry} onClick={vi.fn()} />)
     expect(screen.getByText(/09:00/)).toBeInTheDocument()
     expect(screen.getByText(/10:30/)).toBeInTheDocument()
   })
 
   it('renders child names when children are present', () => {
-    const activityWithChildren: Activity = {
-      ...baseActivity,
+    const entryWithChildren: SessionCalendarEntry = {
+      ...baseEntry,
       children: [
         { id: 10, first_name: 'Alice', age: 7 },
         { id: 11, first_name: 'Bob', age: 5 },
       ],
     }
-    render(<ActivityCard activity={activityWithChildren} onClick={vi.fn()} />)
+    render(<ActivityCard entry={entryWithChildren} onClick={vi.fn()} />)
     expect(screen.getByText('Alice, Bob')).toBeInTheDocument()
   })
 
   it('does not render child names when there are no children', () => {
-    render(<ActivityCard activity={baseActivity} onClick={vi.fn()} />)
-    // No child name text should appear
+    render(<ActivityCard entry={baseEntry} onClick={vi.fn()} />)
     expect(screen.queryByText(/Alice/)).not.toBeInTheDocument()
   })
 
   it('calls onClick when the card is clicked', async () => {
     const user = userEvent.setup()
     const handleClick = vi.fn()
-    render(<ActivityCard activity={baseActivity} onClick={handleClick} />)
+    render(<ActivityCard entry={baseEntry} onClick={handleClick} />)
     await user.click(screen.getByRole('button'))
     expect(handleClick).toHaveBeenCalledTimes(1)
   })
 
   it('is rendered as a button element', () => {
-    render(<ActivityCard activity={baseActivity} onClick={vi.fn()} />)
+    render(<ActivityCard entry={baseEntry} onClick={vi.fn()} />)
     expect(screen.getByRole('button')).toBeInTheDocument()
+  })
+
+  it('projected entries render with dashed style', () => {
+    const projectedEntry = {
+      kind: 'projected' as const,
+      activity_id: 1,
+      session_id: null,
+      name: 'Projected Practice',
+      scheduled_date: '2024-01-01',
+      start_time: '09:00',
+      end_time: '10:30',
+      notes: null,
+      children: [],
+    }
+    render(<ActivityCard entry={projectedEntry} onClick={vi.fn()} />)
+    const button = screen.getByRole('button')
+    expect(button.className).toMatch(/border-dashed/)
+    expect(button.className).toMatch(/opacity-60/)
   })
 })

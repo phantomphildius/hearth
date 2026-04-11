@@ -7,10 +7,10 @@ class ActivitiesController < ApplicationController
   ActivityChildPropShape = T.type_alias { { id: Integer, first_name: String, age: Integer } }
   ActivityPropShape = T.type_alias {
     {
-      id: Integer, name: String, location_name: T.nilable(String), address: T.nilable(String),
-      latitude: T.nilable(Float), longitude: T.nilable(Float), day_of_week: T.nilable(Integer),
+      id: Integer, name: String, day_of_week: T.nilable(Integer),
       day_of_week_name: T.nilable(String), start_time: T.nilable(String), end_time: T.nilable(String),
       duration_minutes: T.nilable(Integer), recurrence: String, starts_on: T.nilable(String),
+      biweekly_anchor_date: T.nilable(String),
       notes: T.nilable(String), children: T::Array[ActivityChildPropShape],
       created_at: T.nilable(ActiveSupport::TimeWithZone), updated_at: T.nilable(ActiveSupport::TimeWithZone)
     }
@@ -22,11 +22,14 @@ class ActivitiesController < ApplicationController
   sig { void }
   def index
     authorize Activity
-    activities = @household.activities.includes(:children).order(:day_of_week, :start_time)
+    week_start = parse_week_start(params[:week_start])
+    entries = ProjectWeeklyCalendar.call(household: @household, week_start: week_start)
 
     render(inertia: "Activities/Index", props: {
       household: household_props(@household),
-      activities: activities.map { |a| activity_props(a) },
+      calendar_entries: entries,
+      week_start: week_start.iso8601,
+      activities: @household.activities.active.includes(:children).order(:name).map { |a| activity_props(a) },
       children: @household.children.map { |c| child_props(c) },
     })
   end
@@ -70,7 +73,7 @@ class ActivitiesController < ApplicationController
     if @activity.save
       child_ids = Array(params.dig(:activity, :child_ids)).map(&:to_i)
       SyncActivityChildren.call(activity: @activity, child_ids: child_ids, household: @household)
-      redirect_to(household_activity_path(@household, @activity), notice: "Activity created.")
+      redirect_to(household_activities_path(@household), notice: "Activity created.")
     else
       render(inertia: "Activities/New", props: {
         household: household_props(@household),
@@ -87,7 +90,7 @@ class ActivitiesController < ApplicationController
     if @activity.update(activity_params)
       child_ids = Array(params.dig(:activity, :child_ids)).map(&:to_i)
       SyncActivityChildren.call(activity: @activity, child_ids: child_ids, household: @household)
-      redirect_to(household_activity_path(@household, @activity), notice: "Activity updated.")
+      redirect_to(household_activities_path(@household), notice: "Activity updated.")
     else
       render(inertia: "Activities/Edit", props: {
         household: household_props(@household),
@@ -101,11 +104,21 @@ class ActivitiesController < ApplicationController
   sig { void }
   def destroy
     authorize @activity
-    @activity.destroy
-    redirect_to(household_activities_path(@household), notice: "Activity deleted.")
+    @activity.update!(archived_at: Time.current)
+    redirect_to(household_activities_path(@household), notice: "Activity removed.")
   end
 
   private
+
+  sig { params(param: T.untyped).returns(Date) }
+  def parse_week_start(param)
+    date = Date.parse(param.to_s)
+    # Snap to Monday of the given date's week
+    date - ((date.wday - 1) % 7)
+  rescue ArgumentError, TypeError
+    today = Date.today
+    today - ((today.wday - 1) % 7)
+  end
 
   sig { void }
   def set_household
@@ -122,16 +135,13 @@ class ActivitiesController < ApplicationController
     params.expect(
       activity: [
         :name,
-        :location_name,
-        :address,
-        :latitude,
-        :longitude,
         :day_of_week,
         :start_time,
         :end_time,
         :duration_minutes,
         :recurrence,
         :starts_on,
+        :biweekly_anchor_date,
         :notes,
       ],
     )
@@ -142,17 +152,14 @@ class ActivitiesController < ApplicationController
     {
       id: activity.id,
       name: activity.name,
-      location_name: activity.location_name,
-      address: activity.address,
-      latitude: activity.latitude,
-      longitude: activity.longitude,
       day_of_week: activity.day_of_week,
       day_of_week_name: activity.day_of_week_name,
       start_time: activity.start_time&.strftime("%H:%M"),
       end_time: activity.end_time&.strftime("%H:%M"),
       duration_minutes: activity.duration_minutes,
       recurrence: activity.recurrence,
-      starts_on: activity.starts_on,
+      starts_on: activity.starts_on&.iso8601,
+      biweekly_anchor_date: activity.biweekly_anchor_date&.iso8601,
       notes: activity.notes,
       children: activity.children.map { |c| { id: c.id, first_name: c.first_name, age: c.age } },
       created_at: activity.created_at,

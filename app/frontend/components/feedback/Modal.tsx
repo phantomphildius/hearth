@@ -16,6 +16,7 @@ const sizeClasses = {
 
 export default function Modal({ open, onClose, title, children, size = 'md' }: ModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null)
+  const triggerRef = useRef<Element | null>(null)
   const titleId = `modal-title-${title.replace(/\s+/g, '-').toLowerCase()}`
 
   useEffect(() => {
@@ -23,9 +24,14 @@ export default function Modal({ open, onClose, title, children, size = 'md' }: M
     if (!dialog) return
 
     if (open) {
+      triggerRef.current = document.activeElement
       dialog.showModal()
     } else {
       dialog.close()
+      if (triggerRef.current instanceof HTMLElement) {
+        triggerRef.current.focus()
+      }
+      triggerRef.current = null
     }
   }, [open])
 
@@ -47,7 +53,6 @@ export default function Modal({ open, onClose, title, children, size = 'md' }: M
   return (
     <dialog
       ref={dialogRef}
-      open
       aria-labelledby={titleId}
       aria-modal="true"
       onClick={(e) => { if (e.target === dialogRef.current) onClose() }}

@@ -4,7 +4,7 @@
 
 export interface User {
   id: number
-  name: string
+  name: string | null
   email: string
   avatar_url: string | null
 }
@@ -16,7 +16,7 @@ export interface Household {
 
 export interface Member {
   id: number
-  name: string
+  name: string | null
   email: string
   avatar_url: string | null
 }
@@ -31,10 +31,6 @@ export interface Child {
 export interface Activity {
   id: number
   name: string
-  location_name: string | null
-  address: string | null
-  latitude: number | null
-  longitude: number | null
   day_of_week: number | null
   day_of_week_name: string | null
   start_time: string
@@ -42,11 +38,50 @@ export interface Activity {
   duration_minutes: number
   recurrence: 'weekly' | 'biweekly' | 'monthly' | 'one_time'
   starts_on: string | null
+  biweekly_anchor_date: string | null
   notes: string | null
   children: ActivityChild[]
   created_at: string
   updated_at: string
 }
+
+export interface ProjectedCalendarEntry {
+  kind: 'projected'
+  activity_id: number
+  session_id: null
+  scheduled_date: string
+  start_time: string
+  end_time: string
+  name: string
+  notes: null
+  children: ActivityChild[]
+}
+
+export interface SessionCalendarEntry {
+  kind: 'session'
+  activity_id: number
+  session_id: number
+  scheduled_date: string
+  start_time: string
+  end_time: string
+  name: string
+  notes: string | null
+  children: ActivityChild[]
+}
+
+export interface CancelledCalendarEntry {
+  kind: 'cancelled'
+  activity_id: number
+  session_id: number
+  scheduled_date: string
+  start_time: string
+  end_time: string
+  name: string
+  notes: string | null
+  children: ActivityChild[]
+}
+
+export type CalendarEntry = ProjectedCalendarEntry | SessionCalendarEntry | CancelledCalendarEntry
 
 export interface ActivityChild {
   id: number
@@ -78,19 +113,9 @@ export interface ActivityFormData {
   end_time: string
   recurrence: string
   starts_on: string
-  location_name: string
-  address: string
-  latitude: number | null
-  longitude: number | null
+  biweekly_anchor_date: string
   notes: string
   child_ids: number[]
-}
-
-export interface LocationData {
-  location_name: string
-  address: string
-  latitude: number | null
-  longitude: number | null
 }
 
 // ============================================================
@@ -112,13 +137,6 @@ export interface SharedProps {
 // Page Props
 // ============================================================
 
-export interface HouseholdShowPageProps extends SharedProps {
-  household: Household
-  members: Member[]
-  children: Child[]
-  errors?: Record<string, string[]>
-}
-
 export interface HouseholdNewPageProps extends SharedProps {
   errors?: Record<string, string[]>
 }
@@ -133,6 +151,8 @@ export interface HouseholdSettingsPageProps extends SharedProps {
 export interface ActivitiesIndexPageProps extends SharedProps {
   household: Household
   activities: Activity[]
+  calendar_entries: CalendarEntry[]
+  week_start: string
   children: Child[]
 }
 

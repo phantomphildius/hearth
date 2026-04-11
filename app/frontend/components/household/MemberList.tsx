@@ -20,15 +20,15 @@ export default function MemberList({ members, onRemove }: MemberListProps) {
           <li key={member.id} className="flex items-center justify-between py-3">
             <div className="flex items-center gap-3">
               {member.avatar_url ? (
-                <img src={member.avatar_url} alt={member.name} className="w-8 h-8 rounded-full" />
+                <img src={member.avatar_url} alt={member.name ?? member.email} className="w-8 h-8 rounded-full" />
               ) : (
                 <div className="w-8 h-8 rounded-full bg-stone-200 flex items-center justify-center text-sm font-medium text-stone-600">
-                  {member.name.charAt(0)}
+                  {(member.name ?? member.email).charAt(0).toUpperCase()}
                 </div>
               )}
               <div>
-                <p className="text-sm font-medium text-stone-800">{member.name}</p>
-                <p className="text-xs text-stone-500">{member.email}</p>
+                <p className="text-sm font-medium text-stone-800">{member.name ?? member.email}</p>
+                {member.name && <p className="text-xs text-stone-500">{member.email}</p>}
               </div>
             </div>
             {member.id !== auth.user?.id && (
@@ -51,7 +51,7 @@ export default function MemberList({ members, onRemove }: MemberListProps) {
         }}
         onCancel={() => setConfirmRemove(null)}
         title="Remove Member"
-        message={`Are you sure you want to remove ${confirmRemove?.name} from this household?`}
+        message={`Are you sure you want to remove ${confirmRemove?.name ?? confirmRemove?.email} from this household?`}
         confirmLabel="Remove"
         variant="danger"
       />

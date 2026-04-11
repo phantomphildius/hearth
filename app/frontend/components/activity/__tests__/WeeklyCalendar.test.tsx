@@ -1,31 +1,22 @@
 import { render, screen } from '@testing-library/react'
 import WeeklyCalendar from '../WeeklyCalendar'
-import type { Activity } from '../../../types'
+import type { SessionCalendarEntry } from '../../../types'
 
 // weekStart = "2024-01-01" is a Monday
-// Resulting week: Mon Jan 1 (day 1), Tue Jan 2 (day 2), Wed Jan 3 (day 3),
-//                 Thu Jan 4 (day 4), Fri Jan 5 (day 5), Sat Jan 6 (day 6), Sun Jan 7 (day 0)
+// Resulting week: Mon Jan 1, Tue Jan 2, Wed Jan 3, Thu Jan 4, Fri Jan 5, Sat Jan 6, Sun Jan 7
 const WEEK_START = '2024-01-01'
 
-function makeActivity(overrides: Partial<Activity> = {}): Activity {
+function makeEntry(overrides: Partial<SessionCalendarEntry> = {}): SessionCalendarEntry {
   return {
-    id: 1,
+    kind: 'session',
+    activity_id: 1,
+    session_id: 1,
     name: 'Soccer Practice',
-    location_name: null,
-    address: null,
-    latitude: null,
-    longitude: null,
-    day_of_week: 1,
-    day_of_week_name: 'Monday',
+    scheduled_date: '2024-01-01', // Monday
     start_time: '09:00',
     end_time: '10:30',
-    duration_minutes: 90,
-    recurrence: 'weekly',
-    starts_on: null,
     notes: null,
     children: [],
-    created_at: '2024-01-01T00:00:00Z',
-    updated_at: '2024-01-01T00:00:00Z',
     ...overrides,
   }
 }
@@ -38,9 +29,9 @@ describe('WeeklyCalendar', () => {
   it('renders 7 day columns on desktop (aria-label "<Day> activities")', () => {
     render(
       <WeeklyCalendar
-        activities={[]}
+        entries={[]}
         weekStart={WEEK_START}
-        onActivityClick={vi.fn()}
+        onEntryClick={vi.fn()}
       />
     )
 
@@ -50,14 +41,14 @@ describe('WeeklyCalendar', () => {
     }
   })
 
-  it('renders an activity in the correct day column (day_of_week=1 → Monday)', () => {
-    const mondayActivity = makeActivity({ id: 42, name: 'Monday Swim', day_of_week: 1 })
+  it('renders an entry in the correct day column (scheduled_date = Monday)', () => {
+    const mondayEntry = makeEntry({ activity_id: 42, name: 'Monday Swim', scheduled_date: '2024-01-01' })
 
     render(
       <WeeklyCalendar
-        activities={[mondayActivity]}
+        entries={[mondayEntry]}
         weekStart={WEEK_START}
-        onActivityClick={vi.fn()}
+        onEntryClick={vi.fn()}
       />
     )
 
@@ -76,9 +67,9 @@ describe('WeeklyCalendar', () => {
 
     render(
       <WeeklyCalendar
-        activities={[]}
+        entries={[]}
         weekStart={WEEK_START}
-        onActivityClick={vi.fn()}
+        onEntryClick={vi.fn()}
       />
     )
 
@@ -90,21 +81,46 @@ describe('WeeklyCalendar', () => {
     expect(allCurrentDate.length).toBeGreaterThanOrEqual(1)
   })
 
-  it('shows "No activities" text for days without activities in mobile view', () => {
-    // Activity only on Monday (day_of_week=1); all other days should show "No activities"
-    const mondayActivity = makeActivity({ day_of_week: 1 })
+  it('shows "No activities" text for days without entries in mobile view', () => {
+    // Entry only on Monday; all other days should show "No activities"
+    const mondayEntry = makeEntry({ scheduled_date: '2024-01-01' })
 
     render(
       <WeeklyCalendar
-        activities={[mondayActivity]}
+        entries={[mondayEntry]}
         weekStart={WEEK_START}
-        onActivityClick={vi.fn()}
+        onEntryClick={vi.fn()}
       />
     )
 
     // The mobile view renders "No activities" for each empty day.
-    // There are 6 days without the activity (all except Monday).
+    // There are 6 days without the entry (all except Monday).
     const noActivitiesItems = screen.getAllByText('No activities')
     expect(noActivitiesItems.length).toBe(6)
+  })
+
+  it('renders projected entries with kind "projected"', () => {
+    const projectedEntry = {
+      kind: 'projected' as const,
+      activity_id: 1,
+      session_id: null,
+      name: 'Projected Swim',
+      scheduled_date: '2024-01-02', // Tuesday
+      start_time: '10:00',
+      end_time: '11:00',
+      notes: null,
+      children: [],
+    }
+
+    render(
+      <WeeklyCalendar
+        entries={[projectedEntry]}
+        weekStart={WEEK_START}
+        onEntryClick={vi.fn()}
+      />
+    )
+
+    const tuesdayColumn = screen.getByRole('list', { name: 'Tuesday activities' })
+    expect(tuesdayColumn).toHaveTextContent('Projected Swim')
   })
 })

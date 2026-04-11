@@ -16,15 +16,32 @@ class AddHouseholdMember
 
   sig { returns(ServiceResult) }
   def call
-    user = User.find_by(email: @email)
-    return ServiceResult.fail(errors: ["No user found with that email."]) if user.nil?
+    user_result = find_or_create_user
+    return user_result unless user_result.success?
 
+    user = T.cast(user_result.record, User)
     member = @household.household_members.build(user: user)
 
     if member.save
+      InvitationMailer.invite(user, @household).deliver_later
       ServiceResult.ok(record: member)
     else
       ServiceResult.fail(errors: member.errors.full_messages)
+    end
+  end
+
+  private
+
+  sig { returns(ServiceResult) }
+  def find_or_create_user
+    user = User.find_by(email: @email)
+    return ServiceResult.ok(record: user) if user
+
+    stub = User.new(email: @email)
+    if stub.save
+      ServiceResult.ok(record: stub)
+    else
+      ServiceResult.fail(errors: stub.errors.full_messages)
     end
   end
 end

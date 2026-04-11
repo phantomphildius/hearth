@@ -1,10 +1,10 @@
 import ActivityCard from './ActivityCard'
-import type { Activity } from '../../types'
+import type { CalendarEntry } from '../../types'
 
 interface WeeklyCalendarProps {
-  activities: Activity[]
+  entries: CalendarEntry[]
   weekStart: string
-  onActivityClick: (activity: Activity) => void
+  onEntryClick: (entry: CalendarEntry) => void
 }
 
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
@@ -18,6 +18,10 @@ function getWeekDates(weekStart: string): Date[] {
   })
 }
 
+function toISODate(date: Date): string {
+  return date.toISOString().split('T')[0]
+}
+
 function formatDate(date: Date): string {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
@@ -29,7 +33,7 @@ function isToday(date: Date): boolean {
     date.getDate() === today.getDate()
 }
 
-export default function WeeklyCalendar({ activities, weekStart, onActivityClick }: WeeklyCalendarProps) {
+export default function WeeklyCalendar({ entries, weekStart, onEntryClick }: WeeklyCalendarProps) {
   const weekDates = getWeekDates(weekStart)
 
   return (
@@ -37,9 +41,10 @@ export default function WeeklyCalendar({ activities, weekStart, onActivityClick 
       {/* Desktop: 7-column grid */}
       <div className="hidden md:grid md:grid-cols-7 gap-2">
         {weekDates.map((date, i) => {
+          const isoDate = toISODate(date)
           const dayOfWeek = date.getDay()
-          const dayActivities = activities
-            .filter((a) => a.day_of_week === dayOfWeek)
+          const dayEntries = entries
+            .filter((e) => e.scheduled_date === isoDate)
             .sort((a, b) => a.start_time.localeCompare(b.start_time))
           const today = isToday(date)
 
@@ -61,9 +66,9 @@ export default function WeeklyCalendar({ activities, weekStart, onActivityClick 
                 </p>
               </div>
               <div className="space-y-1.5">
-                {dayActivities.map((activity) => (
-                  <li key={activity.id}>
-                    <ActivityCard activity={activity} onClick={() => onActivityClick(activity)} />
+                {dayEntries.map((entry) => (
+                  <li key={`${entry.kind}-${entry.activity_id}-${entry.scheduled_date}`}>
+                    <ActivityCard entry={entry} onClick={() => onEntryClick(entry)} />
                   </li>
                 ))}
               </div>
@@ -75,9 +80,10 @@ export default function WeeklyCalendar({ activities, weekStart, onActivityClick 
       {/* Mobile: stacked list */}
       <div className="md:hidden space-y-4">
         {weekDates.map((date, i) => {
+          const isoDate = toISODate(date)
           const dayOfWeek = date.getDay()
-          const dayActivities = activities
-            .filter((a) => a.day_of_week === dayOfWeek)
+          const dayEntries = entries
+            .filter((e) => e.scheduled_date === isoDate)
             .sort((a, b) => a.start_time.localeCompare(b.start_time))
           const today = isToday(date)
 
@@ -90,11 +96,11 @@ export default function WeeklyCalendar({ activities, weekStart, onActivityClick 
                 {DAY_NAMES[dayOfWeek]} &middot; {formatDate(date)}
                 {today && <span className="ml-2 text-xs font-normal text-amber-600">(Today)</span>}
               </h3>
-              {dayActivities.length > 0 ? (
+              {dayEntries.length > 0 ? (
                 <ul className="space-y-2">
-                  {dayActivities.map((activity) => (
-                    <li key={activity.id}>
-                      <ActivityCard activity={activity} onClick={() => onActivityClick(activity)} />
+                  {dayEntries.map((entry) => (
+                    <li key={`${entry.kind}-${entry.activity_id}-${entry.scheduled_date}`}>
+                      <ActivityCard entry={entry} onClick={() => onEntryClick(entry)} />
                     </li>
                   ))}
                 </ul>

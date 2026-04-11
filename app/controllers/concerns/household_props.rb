@@ -5,7 +5,7 @@ module HouseholdProps
   extend ActiveSupport::Concern
 
   HouseholdPropShape = T.type_alias { { id: Integer, name: String } }
-  UserPropShape = T.type_alias { { id: Integer, name: String, email: String, avatar_url: T.nilable(String) } }
+  UserPropShape = T.type_alias { { id: Integer, name: T.nilable(String), email: String, avatar_url: T.nilable(String) } }
   ChildPropShape = T.type_alias { { id: Integer, first_name: String, date_of_birth: T.nilable(String), age: Integer } }
 
   private

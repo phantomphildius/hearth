@@ -4,8 +4,7 @@ import Input from '../form/Input'
 import Select from '../form/Select'
 import TimePicker from '../form/TimePicker'
 import Button from '../form/Button'
-import LocationPicker from './LocationPicker'
-import type { Activity, Child, ActivityFormData, LocationData } from '../../types'
+import type { Activity, Child, ActivityFormData } from '../../types'
 
 interface ActivityFormProps {
   activity?: Activity | null
@@ -34,6 +33,7 @@ const RECURRENCE_OPTIONS = [
 
 export default function ActivityForm({ activity, householdId, children, errors: serverErrors, onCancel }: ActivityFormProps) {
   const isEdit = !!activity
+  const today = new Date().toISOString().split('T')[0]
   const { data, setData, post, patch, processing, errors } = useForm<ActivityFormData>({
     name: activity?.name || '',
     day_of_week: activity?.day_of_week ?? null,
@@ -41,10 +41,7 @@ export default function ActivityForm({ activity, householdId, children, errors: 
     end_time: activity?.end_time || '',
     recurrence: activity?.recurrence || 'weekly',
     starts_on: activity?.starts_on || '',
-    location_name: activity?.location_name || '',
-    address: activity?.address || '',
-    latitude: activity?.latitude ?? null,
-    longitude: activity?.longitude ?? null,
+    biweekly_anchor_date: activity?.biweekly_anchor_date || today,
     notes: activity?.notes || '',
     child_ids: activity?.children?.map((c) => c.id) || [],
   })
@@ -69,12 +66,20 @@ export default function ActivityForm({ activity, householdId, children, errors: 
       setClientError('End time is required')
       return
     }
-    if (data.recurrence !== 'one_time' && data.day_of_week === null) {
+    if (data.recurrence !== 'one_time' && data.recurrence !== 'monthly' && data.day_of_week === null) {
       setClientError('Day of week is required for recurring activities')
       return
     }
     if (data.recurrence === 'one_time' && !data.starts_on) {
       setClientError('Date is required for one-time activities')
+      return
+    }
+    if (data.recurrence === 'monthly' && !data.starts_on) {
+      setClientError('Starting date is required for monthly activities')
+      return
+    }
+    if (data.recurrence === 'biweekly' && !data.biweekly_anchor_date) {
+      setClientError('Starting week is required for biweekly activities')
       return
     }
     if (data.start_time && data.end_time && data.end_time <= data.start_time) {
@@ -87,16 +92,6 @@ export default function ActivityForm({ activity, householdId, children, errors: 
     } else {
       post(`/households/${householdId}/activities`)
     }
-  }
-
-  const handleLocationChange = (location: LocationData) => {
-    setData((prev) => ({
-      ...prev,
-      location_name: location.location_name,
-      address: location.address,
-      latitude: location.latitude,
-      longitude: location.longitude,
-    }))
   }
 
   const toggleChild = (childId: number) => {
@@ -120,16 +115,18 @@ export default function ActivityForm({ activity, householdId, children, errors: 
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Select
-          label="Day of Week"
-          name="activity[day_of_week]"
-          value={data.day_of_week?.toString() || ''}
-          onChange={(value) => setData('day_of_week', value ? parseInt(value) : null)}
-          options={DAY_OPTIONS}
-          error={allErrors.day_of_week?.[0]}
-          placeholder="Select day..."
-          required={data.recurrence !== 'one_time'}
-        />
+        {data.recurrence !== 'one_time' && data.recurrence !== 'monthly' && (
+          <Select
+            label="Day of Week"
+            name="activity[day_of_week]"
+            value={data.day_of_week?.toString() || ''}
+            onChange={(value) => setData('day_of_week', value ? parseInt(value) : null)}
+            options={DAY_OPTIONS}
+            error={allErrors.day_of_week?.[0]}
+            placeholder="Select day..."
+            required
+          />
+        )}
         <Select
           label="Recurrence"
           name="activity[recurrence]"
@@ -160,9 +157,9 @@ export default function ActivityForm({ activity, householdId, children, errors: 
         />
       </div>
 
-      {data.recurrence === 'one_time' && (
+      {(data.recurrence === 'one_time' || data.recurrence === 'monthly') && (
         <Input
-          label="Date"
+          label={data.recurrence === 'monthly' ? 'Starting from (sets the day pattern)' : 'Date'}
           name="activity[starts_on]"
           type="date"
           value={data.starts_on}
@@ -172,13 +169,17 @@ export default function ActivityForm({ activity, householdId, children, errors: 
         />
       )}
 
-      <LocationPicker
-        locationName={data.location_name}
-        address={data.address}
-        latitude={data.latitude}
-        longitude={data.longitude}
-        onChange={handleLocationChange}
-      />
+      {data.recurrence === 'biweekly' && (
+        <Input
+          label="Starting week of"
+          name="activity[biweekly_anchor_date]"
+          type="date"
+          value={data.biweekly_anchor_date}
+          onChange={(value) => setData('biweekly_anchor_date', value)}
+          error={allErrors.biweekly_anchor_date?.[0]}
+          required
+        />
+      )}
 
       {children.length > 0 && (
         <fieldset>

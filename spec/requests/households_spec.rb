@@ -10,9 +10,9 @@ RSpec.describe("Households", type: :request) do
   end
 
   describe "GET /households/:id" do
-    it "renders the household show page" do
+    it "redirects to the settings page" do
       get household_path(household)
-      expect(response).to(have_http_status(:ok))
+      expect(response).to(redirect_to(settings_household_path(household)))
     end
 
     it "resolves 'current' to the user's first household" do
@@ -53,7 +53,7 @@ RSpec.describe("Households", type: :request) do
       new_household = Household.last
       expect(new_household.name).to(eq("New Household"))
       expect(new_household.users).to(include(user))
-      expect(response).to(redirect_to(household_path(new_household)))
+      expect(response).to(redirect_to(household_activities_path(new_household)))
     end
 
     it "re-renders on validation failure" do
@@ -67,7 +67,7 @@ RSpec.describe("Households", type: :request) do
       patch household_path(household), params: { household: { name: "Updated Name" } }
 
       expect(household.reload.name).to(eq("Updated Name"))
-      expect(response).to(redirect_to(household_path(household)))
+      expect(response).to(redirect_to(settings_household_path(household)))
     end
   end
 

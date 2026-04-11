@@ -16,13 +16,14 @@ FactoryBot.define do
 
     trait :biweekly do
       recurrence { "biweekly" }
+      biweekly_anchor_date { Date.today }
     end
 
-    trait :with_location do
-      location_name { "City Park Field #1" }
-      address { "123 Park Ave, Springfield, IL" }
-      latitude { 39.7817 }
-      longitude { -89.6501 }
+    trait :monthly do
+      recurrence { "monthly" }
+      day_of_week { nil }
+      starts_on { Date.new(2024, 1, 2) } # 1st Tuesday of January 2024
     end
+
   end
 end

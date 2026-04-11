@@ -8,7 +8,9 @@ module Users
     skip_after_action :verify_authorized
 
     def new
-      render inertia: "Auth/SignIn"
+      props = {}
+      props[:dev_sign_in_path] = dev_sign_in_path if Rails.env.development?
+      render inertia: "Auth/SignIn", props: props
     end
   end
 end

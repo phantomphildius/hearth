@@ -17,9 +17,9 @@ RSpec.describe(User, type: :model) do
       expect(subject).not_to(be_valid)
     end
 
-    it "requires name" do
+    it "allows nil name (stub users invited before OAuth sign-in have no name)" do
       subject.name = nil
-      expect(subject).not_to(be_valid)
+      expect(subject).to(be_valid)
     end
   end
 

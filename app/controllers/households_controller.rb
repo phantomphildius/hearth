@@ -9,11 +9,7 @@ class HouseholdsController < ApplicationController
   sig { void }
   def show
     authorize @household
-    render(inertia: "Households/Show", props: {
-      household: household_props(@household),
-      members: @household.users.map { |u| user_props(u) },
-      children: @household.children.map { |c| child_props(c) },
-    })
+    redirect_to(settings_household_path(@household))
   end
 
   sig { void }
@@ -30,7 +26,7 @@ class HouseholdsController < ApplicationController
     result = CreateHousehold.call(user: current_user, name: household_params[:name])
 
     if result.success?
-      redirect_to(household_path(result.record), notice: "Household created.")
+      redirect_to(household_activities_path(result.record), notice: "Household created.")
     else
       render(inertia: "Households/New", props: {
         errors: result.errors,
@@ -42,9 +38,9 @@ class HouseholdsController < ApplicationController
   def update
     authorize @household
     if @household.update(household_params)
-      redirect_to(household_path(@household), notice: "Household updated.")
+      redirect_to(settings_household_path(@household), notice: "Household updated.")
     else
-      render(inertia: "Households/Show", props: {
+      render(inertia: "Households/Settings", props: {
         household: household_props(@household),
         members: @household.users.map { |u| user_props(u) },
         children: @household.children.map { |c| child_props(c) },

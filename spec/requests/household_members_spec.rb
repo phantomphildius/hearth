@@ -20,9 +20,9 @@ RSpec.describe("HouseholdMembers", type: :request) do
       expect(household.users.reload).to(include(other_user))
     end
 
-    it "handles non-existent user email" do
+    it "handles non-existent user email by creating a stub user and redirecting to settings" do
       post household_household_members_path(household), params: { email: "nobody@example.com" }
-      expect(response).to(redirect_to(household_path(household)))
+      expect(response).to(redirect_to(settings_household_path(household)))
     end
 
     it "prevents adding the same user twice" do
@@ -50,8 +50,7 @@ RSpec.describe("HouseholdMembers", type: :request) do
         delete(household_household_member_path(household, user))
       end.not_to(change(HouseholdMember, :count))
 
-      expect(response).to(redirect_to(household_path(household)))
-      follow_redirect!
+      expect(response).to(redirect_to(settings_household_path(household)))
     end
   end
 end

@@ -33,7 +33,7 @@ export default function Select({ label, name, value, onChange, options, error, p
           error ? 'border-red-500' : 'border-stone-300'
         }`}
       >
-        {placeholder && <option value="">{placeholder}</option>}
+        {placeholder && <option value="" disabled>{placeholder}</option>}
         {options.map((opt) => (
           <option key={opt.value} value={opt.value}>{opt.label}</option>
         ))}

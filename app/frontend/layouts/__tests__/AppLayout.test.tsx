@@ -72,17 +72,23 @@ describe('AppLayout', () => {
     const menuButton = screen.getByRole('button', { name: 'Open menu' })
     expect(menuButton).toHaveAttribute('aria-expanded', 'false')
 
+    // Before opening: Activities appears once (desktop nav only)
+    const linksBeforeOpen = screen.getAllByRole('link', { name: 'Activities' })
+    const countBefore = linksBeforeOpen.length
+
     // Open the menu
     await user.click(menuButton)
 
     expect(screen.getByRole('button', { name: 'Close menu' })).toHaveAttribute('aria-expanded', 'true')
-    expect(screen.getByRole('link', { name: 'Dashboard' })).toBeInTheDocument()
+    // After opening: Activities appears in both desktop nav and mobile menu
+    expect(screen.getAllByRole('link', { name: 'Activities' }).length).toBeGreaterThan(countBefore)
 
     // Close the menu
     await user.click(screen.getByRole('button', { name: 'Close menu' }))
 
     expect(screen.getByRole('button', { name: 'Open menu' })).toHaveAttribute('aria-expanded', 'false')
-    expect(screen.queryByRole('link', { name: 'Dashboard' })).not.toBeInTheDocument()
+    // After closing: back to original count
+    expect(screen.getAllByRole('link', { name: 'Activities' }).length).toBe(countBefore)
   })
 
   it('sign out button is present', () => {

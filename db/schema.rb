@@ -10,20 +10,18 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_28_201824) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_11_121020) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
   create_table "activities", force: :cascade do |t|
-    t.string "address"
+    t.datetime "archived_at"
+    t.date "biweekly_anchor_date"
     t.datetime "created_at", null: false
     t.integer "day_of_week"
     t.integer "duration_minutes", null: false
     t.time "end_time", null: false
     t.bigint "household_id", null: false
-    t.decimal "latitude", precision: 10, scale: 7
-    t.string "location_name"
-    t.decimal "longitude", precision: 10, scale: 7
     t.string "name", null: false
     t.text "notes"
     t.string "recurrence", default: "weekly", null: false
@@ -45,10 +43,24 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_28_201824) do
     t.index ["child_id"], name: "index_activity_children_on_child_id"
   end
 
+  create_table "activity_sessions", force: :cascade do |t|
+    t.bigint "activity_id", null: false
+    t.datetime "created_at", null: false
+    t.time "end_time"
+    t.text "notes"
+    t.date "scheduled_date", null: false
+    t.time "start_time"
+    t.string "status", default: "confirmed", null: false
+    t.datetime "updated_at", null: false
+    t.index ["activity_id", "scheduled_date"], name: "index_activity_sessions_on_activity_id_and_scheduled_date", unique: true
+    t.index ["activity_id"], name: "index_activity_sessions_on_activity_id"
+    t.index ["scheduled_date", "activity_id"], name: "index_activity_sessions_on_scheduled_date_and_activity_id"
+  end
+
   create_table "children", force: :cascade do |t|
     t.datetime "created_at", null: false
-    t.date "date_of_birth"
-    t.string "first_name"
+    t.date "date_of_birth", null: false
+    t.string "first_name", null: false
     t.bigint "household_id", null: false
     t.datetime "updated_at", null: false
     t.index ["household_id"], name: "index_children_on_household_id"
@@ -66,7 +78,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_28_201824) do
 
   create_table "households", force: :cascade do |t|
     t.datetime "created_at", null: false
-    t.string "name"
+    t.string "name", null: false
     t.datetime "updated_at", null: false
   end
 
@@ -90,6 +102,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_28_201824) do
   add_foreign_key "activities", "households"
   add_foreign_key "activity_children", "activities"
   add_foreign_key "activity_children", "children"
+  add_foreign_key "activity_sessions", "activities"
   add_foreign_key "children", "households"
   add_foreign_key "household_members", "households"
   add_foreign_key "household_members", "users"

@@ -107,13 +107,14 @@ RSpec.describe("Activities", type: :request) do
   end
 
   describe "DELETE /households/:household_id/activities/:id" do
-    it "deletes an activity" do
+    it "archives the activity (sets archived_at) rather than deleting it" do
       activity = create(:activity, household: household)
 
       expect do
         delete(household_activity_path(household, activity))
-      end.to(change(Activity, :count).by(-1))
+      end.not_to(change(Activity, :count))
 
+      expect(activity.reload.archived_at).not_to(be_nil)
       expect(response).to(redirect_to(household_activities_path(household)))
     end
   end

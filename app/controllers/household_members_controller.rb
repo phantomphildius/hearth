@@ -9,14 +9,16 @@ class HouseholdMembersController < ApplicationController
   def create
     authorize @household, :manage_members?
     if params[:email].blank?
-      return redirect_to(household_path(@household), alert: "Email is required.")
+      return redirect_to(settings_household_path(@household), alert: "Email is required.")
     end
     result = AddHouseholdMember.call(household: @household, email: params[:email])
 
     if result.success?
-      redirect_to(household_path(@household), notice: "#{result.record.user.name} added to household.")
+      invited = result.record.user
+      notice = "#{invited.name || invited.email} added to household."
+      redirect_to(settings_household_path(@household), notice: notice)
     else
-      redirect_to(household_path(@household), alert: result.errors.join(", "))
+      redirect_to(settings_household_path(@household), alert: result.errors.join(", "))
     end
   end
 
@@ -26,9 +28,9 @@ class HouseholdMembersController < ApplicationController
     result = RemoveHouseholdMember.call(household: @household, user_id: params[:id].to_i)
 
     if result.success?
-      redirect_to(household_path(@household), notice: "Member removed.")
+      redirect_to(settings_household_path(@household), notice: "Member removed.")
     else
-      redirect_to(household_path(@household), alert: result.errors.join(", "))
+      redirect_to(settings_household_path(@household), alert: result.errors.join(", "))
     end
   end
 

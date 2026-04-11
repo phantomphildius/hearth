@@ -15,10 +15,16 @@ Rails.application.routes.draw do
     end
     resources :household_members, only: [:create, :destroy]
     resources :children, only: [:create, :update, :destroy]
-    resources :activities
+    resources :activities do
+      resources :activity_sessions, only: [:create, :update, :destroy], path: "sessions"
+    end
+  end
+
+  if Rails.env.development?
+    get "dev/sign_in", to: "dev/sessions#create", as: :dev_sign_in
   end
 
   get "up" => "rails/health#show", as: :rails_health_check
 
-  root "households#show", id: "current"
+  root "dashboard#index"
 end

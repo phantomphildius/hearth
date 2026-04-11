@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { usePage, Link, router } from '@inertiajs/react'
 import Flash from '../components/feedback/Flash'
+import ErrorBoundary from '../components/feedback/ErrorBoundary'
 import type { SharedProps } from '../types'
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -9,7 +10,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const handleSignOut = () => {
-    router.delete('/users/sign_out')
+    router.delete('/sign_out')
   }
 
   return (
@@ -19,13 +20,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <div className="flex items-center gap-6">
-              {householdId ? (
-                <Link href={`/households/${householdId}`} className="text-xl font-semibold text-stone-800">
-                  Hearth
-                </Link>
-              ) : (
-                <span className="text-xl font-semibold text-stone-800">Hearth</span>
-              )}
+              <Link href="/" className="text-xl font-semibold text-stone-800">
+                Hearth
+              </Link>
               {/* Desktop nav links */}
               {householdId && (
                 <div className="hidden md:flex items-center gap-4">
@@ -56,7 +53,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     className="w-8 h-8 rounded-full hidden sm:block"
                   />
                 )}
-                <span className="text-sm text-stone-600 hidden sm:block">{auth.user.name}</span>
+                <span className="text-sm text-stone-600 hidden sm:block">{auth.user.name ?? auth.user.email}</span>
                 {/* Desktop sign out */}
                 <button
                   onClick={handleSignOut}
@@ -94,17 +91,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               {auth.user.avatar_url && (
                 <img src={auth.user.avatar_url} alt="" aria-hidden="true" className="w-8 h-8 rounded-full" />
               )}
-              <span className="text-sm font-medium text-stone-700">{auth.user.name}</span>
+              <span className="text-sm font-medium text-stone-700">{auth.user.name ?? auth.user.email}</span>
             </div>
             {householdId && (
               <>
-                <Link
-                  href={`/households/${householdId}`}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block px-2 py-3 text-sm font-medium text-stone-700 hover:bg-stone-50 rounded-lg min-h-[44px] flex items-center focus:outline-none focus:ring-2 focus:ring-amber-500"
-                >
-                  Dashboard
-                </Link>
                 <Link
                   href={`/households/${householdId}/activities`}
                   onClick={() => setMobileMenuOpen(false)}
@@ -134,7 +124,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <Flash notice={flash.notice} alert={flash.alert} />
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        {children}
+        <ErrorBoundary>
+          {children}
+        </ErrorBoundary>
       </main>
     </div>
   )

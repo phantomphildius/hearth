@@ -45,10 +45,7 @@ function makeFormData(overrides: Partial<ActivityFormData> = {}): ActivityFormDa
     end_time: '',
     recurrence: 'weekly',
     starts_on: '',
-    location_name: '',
-    address: '',
-    latitude: null,
-    longitude: null,
+    biweekly_anchor_date: '',
     notes: '',
     child_ids: [],
     ...overrides,
@@ -97,16 +94,28 @@ describe('ActivityForm', () => {
     expect(screen.getByLabelText(/day of week/i)).toBeInTheDocument()
   })
 
-  it('day of week select is not required for "one_time" recurrence', () => {
-    // The component always renders the Day of Week select, but removes the
-    // required constraint when recurrence is 'one_time'.
+  it('day of week select is not rendered for "one_time" recurrence', () => {
     mockUseForm(makeFormData({ recurrence: 'one_time' }))
     render(<ActivityForm {...defaultProps} />)
-    const daySelect = screen.getByLabelText(/day of week/i)
-    expect(daySelect).toBeInTheDocument()
-    // aria-required should be absent (falsy) for one_time
-    expect(daySelect).not.toHaveAttribute('aria-required', 'true')
-    expect(daySelect).not.toHaveAttribute('required')
+    expect(screen.queryByLabelText(/day of week/i)).not.toBeInTheDocument()
+  })
+
+  it('day of week select is not rendered for "monthly" recurrence', () => {
+    mockUseForm(makeFormData({ recurrence: 'monthly' }))
+    render(<ActivityForm {...defaultProps} />)
+    expect(screen.queryByLabelText(/day of week/i)).not.toBeInTheDocument()
+  })
+
+  it('"Starting from" input is visible for "monthly" recurrence', () => {
+    mockUseForm(makeFormData({ recurrence: 'monthly' }))
+    render(<ActivityForm {...defaultProps} />)
+    expect(screen.getByLabelText(/starting from/i)).toBeInTheDocument()
+  })
+
+  it('"Starting from" input is NOT visible for "weekly" recurrence', () => {
+    mockUseForm(makeFormData({ recurrence: 'weekly' }))
+    render(<ActivityForm {...defaultProps} />)
+    expect(screen.queryByLabelText(/starting from/i)).not.toBeInTheDocument()
   })
 
   it('start date input is visible for "one_time" recurrence', () => {
@@ -119,6 +128,18 @@ describe('ActivityForm', () => {
     mockUseForm(makeFormData({ recurrence: 'weekly' }))
     render(<ActivityForm {...defaultProps} />)
     expect(screen.queryByLabelText(/^date$/i)).not.toBeInTheDocument()
+  })
+
+  it('"Starting week of" input is visible for "biweekly" recurrence', () => {
+    mockUseForm(makeFormData({ recurrence: 'biweekly' }))
+    render(<ActivityForm {...defaultProps} />)
+    expect(screen.getByLabelText(/starting week of/i)).toBeInTheDocument()
+  })
+
+  it('"Starting week of" input is NOT visible for "weekly" recurrence', () => {
+    mockUseForm(makeFormData({ recurrence: 'weekly' }))
+    render(<ActivityForm {...defaultProps} />)
+    expect(screen.queryByLabelText(/starting week of/i)).not.toBeInTheDocument()
   })
 
   it('submitting with end_time before start_time shows a client-side error', async () => {
